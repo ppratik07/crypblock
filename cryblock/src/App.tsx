@@ -1,9 +1,9 @@
 import { generateMnemonic } from 'bip39';
 import './App.css'
 import { useState } from 'react';
-import { LandingPage } from './components/LandingPage';
+import { LandingPage } from './page/LandingPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { PasswordComponent } from './components/PasswordComponent';
+import { PasswordComponent } from './page/PasswordComponent';
 
 function App() {
   const [mnemonic, setMnemonic] = useState("");
