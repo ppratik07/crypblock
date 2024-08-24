@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LoadingScreen } from './LoadingScreen'; // Import the LoadingScreen component
+import { LoadingScreen } from '../components/LoadingScreen'; // Import the LoadingScreen component
 
 export const LandingPage = () => {
     const [isGenerating, setIsGenerating] = useState(false);
