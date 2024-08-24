@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { LandingPage } from './page/LandingPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { PasswordComponent } from './page/PasswordComponent';
+import { RecoveryPhase } from './page/RecoveryPhase';
 
 function App() {
   const [mnemonic, setMnemonic] = useState("");
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/password" element={<PasswordComponent />} />
+          <Route path="/recoveryphase" element={<RecoveryPhase />} />
         </Routes>
       </BrowserRouter>
     </div>
