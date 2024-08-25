@@ -12,11 +12,13 @@ interface WalletDetails {
     publicKey: string;
     privateKey: string;
     balance: number;
+    accountName: string;
 }
 
 export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
+    const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
 
     const connection = new Connection('https://api.devnet.solana.com');
 
@@ -36,10 +38,15 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
             publicKey: keypair.publicKey.toString(),
             privateKey: Buffer.from(keypair.secretKey).toString('hex'),
             balance: balanceSOL,
+            accountName: `Wallet ${currentIndex + 1}`,
         };
 
         setCurrentIndex(currentIndex + 1);
         setWallets([...wallets, walletDetails]);
+    };
+
+    const handleWalletSelection = (index: number) => {
+        setSelectedWallet(index);
     };
 
     return (
@@ -48,28 +55,46 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
 
             <button
                 onClick={addWallet}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
             >
                 Create Wallet
             </button>
 
-            {wallets.map((wallet, index) => (
-                <div key={index} className="mt-4">
-                    <h3 className="text-lg font-semibold">Account {index + 1}</h3>
+            {wallets.length > 0 && (
+                <div>
+                    <label className="block font-medium mb-2">Select Wallet:</label>
+                    <select
+                        className="bg-gray-700 text-white p-2 rounded w-full"
+                        onChange={(e) => handleWalletSelection(Number(e.target.value))}
+                        value={selectedWallet !== null ? selectedWallet : ""}
+                    >
+                        <option value="" disabled>Select a wallet</option>
+                        {wallets.map((wallet, index) => (
+                            <option key={index} value={index}>
+                                {wallet.accountName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
+            {selectedWallet !== null && (
+                <div className="mt-4">
+                    <h3 className="text-lg font-semibold">{wallets[selectedWallet].accountName}</h3>
                     <div>
                         <label className="block font-medium">Balance: </label>
-                        <span className="text-lg">${wallet.balance.toFixed(6)} SOL</span>
+                        <span className="text-lg">${wallets[selectedWallet].balance.toFixed(6)} SOL</span>
                     </div>
                     <div className="mt-2">
                         <label className="block font-medium">Public Key: </label>
-                        <div className="bg-gray-700 p-2 rounded break-all">{wallet.publicKey}</div>
+                        <div className="bg-gray-700 p-2 rounded break-all">{wallets[selectedWallet].publicKey}</div>
                     </div>
                     <div className="mt-2">
                         <label className="block font-medium">Private Key: </label>
-                        <div className="bg-gray-700 p-2 rounded break-all">{wallet.privateKey}</div>
+                        <div className="bg-gray-700 p-2 rounded break-all">{wallets[selectedWallet].privateKey}</div>
                     </div>
                 </div>
-            ))}
+            )}
         </div>
     );
 };
