@@ -16,16 +16,16 @@ interface WalletDetails {
 }
 
 export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
-    const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
     const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
 
     const connection = new Connection('https://api.devnet.solana.com');
 
     const addWallet = async () => {
+        const walletIndex = wallets.length;
         const seed: Buffer = await mnemonicToSeed(mnemonic); 
         const seedHex: string = seed.toString("hex");
-        const path: string = `m/44'/501'/${currentIndex}'/0'`;
+        const path: string = `m/44'/501'/${walletIndex}'/0'`;
         const derivedSeed: Buffer = derivePath(path, seedHex).key;
         const secret: Uint8Array = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
         const keypair: Keypair = Keypair.fromSecretKey(secret);
@@ -38,10 +38,9 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
             publicKey: keypair.publicKey.toString(),
             privateKey: Buffer.from(keypair.secretKey).toString('hex'),
             balance: balanceSOL,
-            accountName: `Wallet ${currentIndex + 1}`,
+            accountName: `Wallet ${walletIndex + 1}`,
         };
 
-        setCurrentIndex(currentIndex + 1);
         setWallets([...wallets, walletDetails]);
     };
 
@@ -49,20 +48,47 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         setSelectedWallet(index);
     };
 
+    const removeWallet = () => {
+        if (selectedWallet !== null) {
+            const confirmation = window.confirm("Are you sure you want to remove this wallet?");
+            if (confirmation) {
+                const updatedWallets = wallets.filter((_, index) => index !== selectedWallet);
+
+                if (updatedWallets.length === 0) {
+                    setWallets([]);
+                    setSelectedWallet(null);
+                } else {
+                    setWallets(updatedWallets);
+                    setSelectedWallet(null);
+                }
+            }
+        }
+    };
+
+    const handleRemoveLastWallet = () => {
+        if (wallets.length > 0 && selectedWallet === wallets.length - 1) {
+            removeWallet();
+            setWallets([]);
+            setSelectedWallet(null);
+        } else {
+            removeWallet();
+        }
+    };
+
     return (
-        <div className="p-6 max-w-md mx-auto bg-gray-800 rounded-xl shadow-md space-y-4 text-white">
-            <h2 className="text-xl font-bold">Solana Wallets</h2>
+        <div className="p-6 max-w-md mx-auto bg-gray-300 rounded-xl shadow-md space-y-4 text-white">
+            <h2 className="text-xl font-bold text-black">Solana Wallets</h2>
 
             <button
                 onClick={addWallet}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4"
             >
                 Create Wallet
             </button>
 
             {wallets.length > 0 && (
                 <div>
-                    <label className="block font-medium mb-2">Select Wallet:</label>
+                    <label className="block font-medium mb-2 text-black">Select Wallet:</label>
                     <select
                         className="bg-gray-700 text-white p-2 rounded w-full"
                         onChange={(e) => handleWalletSelection(Number(e.target.value))}
@@ -80,19 +106,25 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
 
             {selectedWallet !== null && (
                 <div className="mt-4">
-                    <h3 className="text-lg font-semibold">{wallets[selectedWallet].accountName}</h3>
+                    <h3 className="text-lg font-semibold text-red-800">{wallets[selectedWallet].accountName}</h3>
                     <div>
-                        <label className="block font-medium">Balance: </label>
-                        <span className="text-lg">${wallets[selectedWallet].balance.toFixed(6)} SOL</span>
+                        <label className="block font-medium text-black">Balance: </label>
+                        <span className="text-lg font-bold text-blue-600">${wallets[selectedWallet].balance.toFixed(6)} SOL</span>
                     </div>
                     <div className="mt-2">
-                        <label className="block font-medium">Public Key: </label>
+                        <label className="block font-medium text-black">Public Key: </label>
                         <div className="bg-gray-700 p-2 rounded break-all">{wallets[selectedWallet].publicKey}</div>
                     </div>
                     <div className="mt-2">
-                        <label className="block font-medium">Private Key: </label>
+                        <label className="block font-medium text-black">Private Key: </label>
                         <div className="bg-gray-700 p-2 rounded break-all">{wallets[selectedWallet].privateKey}</div>
                     </div>
+                    <button
+                        onClick={handleRemoveLastWallet}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
+                    >
+                        Remove Wallet
+                    </button>
                 </div>
             )}
         </div>
