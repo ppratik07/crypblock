@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { mnemonicToSeed } from 'bip39';
 import { derivePath } from 'ed25519-hd-key';
-import { Keypair, PublicKey, Connection } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import nacl from 'tweetnacl';
 
 interface SolanaWalletProps {
@@ -21,6 +21,29 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
     const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
 
     const connection = new Connection('https://api.devnet.solana.com');
+
+    useEffect(() => {
+        const savedWallets = sessionStorage.getItem('wallets');
+        const savedTime = sessionStorage.getItem('walletsSavedTime');
+
+        if (savedWallets && savedTime) {
+            const currentTime = new Date().getTime();
+            const timeElapsed = currentTime - parseInt(savedTime, 10);
+            if (timeElapsed <= 900000) {
+                setWallets(JSON.parse(savedWallets));
+            } else {
+                sessionStorage.removeItem('wallets');
+                sessionStorage.removeItem('walletsSavedTime');
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (wallets.length > 0) {
+            sessionStorage.setItem('wallets', JSON.stringify(wallets));
+            sessionStorage.setItem('walletsSavedTime', new Date().getTime().toString());
+        }
+    }, [wallets]);
 
     const addWallet = async () => {
         const walletIndex = wallets.length;
@@ -42,13 +65,12 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         };
 
         setWallets([...wallets, walletDetails]);
-        setSelectedWallet(walletIndex); 
-        setShowPrivateKey(false); 
+        setSelectedWallet(wallets.length); 
     };
 
     const handleWalletSelection = (index: number) => {
         setSelectedWallet(index);
-        setShowPrivateKey(false); 
+        setShowPrivateKey(false);
     };
 
     const removeWallet = () => {
