@@ -25,7 +25,7 @@ export const EtheriumWallet: React.FC<EthereumWalletProps> = ({ mnemonic }) => {
         const wallet = new Wallet(privateKey);
 
         // Fetch the balance
-        const provider = new ethers.JsonRpcProvider("https://api.devnet.solana.com"); // Replace with your provider
+        const provider = new ethers.JsonRpcProvider(""); // Replace with your provider
         const balance = await provider.getBalance(wallet.address);
         const balanceETH = ethers.formatEther(balance);
 
