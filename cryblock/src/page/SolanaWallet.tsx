@@ -42,6 +42,8 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         };
 
         setWallets([...wallets, walletDetails]);
+        setSelectedWallet(walletIndex); 
+        setShowPrivateKey(false); 
     };
 
     const handleWalletSelection = (index: number) => {
