@@ -30,9 +30,9 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         const secret: Uint8Array = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
         const keypair: Keypair = Keypair.fromSecretKey(secret);
 
-        // Fetch the balance
+        // Fetching the balance
         const balanceLamports = await connection.getBalance(keypair.publicKey);
-        const balanceSOL = balanceLamports / 1e9; // Convert lamports to SOL
+        const balanceSOL = balanceLamports / 1e9;
 
         const walletDetails: WalletDetails = {
             publicKey: keypair.publicKey.toString(),
@@ -53,25 +53,17 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
             const confirmation = window.confirm("Are you sure you want to remove this wallet?");
             if (confirmation) {
                 const updatedWallets = wallets.filter((_, index) => index !== selectedWallet);
+                setWallets(updatedWallets);
 
+               
                 if (updatedWallets.length === 0) {
-                    setWallets([]);
                     setSelectedWallet(null);
+                } else if (selectedWallet >= updatedWallets.length) {
+                    setSelectedWallet(updatedWallets.length - 1);
                 } else {
-                    setWallets(updatedWallets);
                     setSelectedWallet(null);
                 }
             }
-        }
-    };
-
-    const handleRemoveLastWallet = () => {
-        if (wallets.length > 0 && selectedWallet === wallets.length - 1) {
-            removeWallet();
-            setWallets([]);
-            setSelectedWallet(null);
-        } else {
-            removeWallet();
         }
     };
 
@@ -120,7 +112,7 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
                         <div className="bg-gray-700 p-2 rounded break-all">{wallets[selectedWallet].privateKey}</div>
                     </div>
                     <button
-                        onClick={handleRemoveLastWallet}
+                        onClick={removeWallet}
                         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
                     >
                         Remove Wallet
