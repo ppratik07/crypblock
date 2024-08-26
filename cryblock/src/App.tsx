@@ -18,7 +18,7 @@ function App() {
           <Route path="/password" element={<PasswordComponent />} />
           <Route path="/recoveryphase" element={<RecoveryPhase />} />
           <Route path="/ready" element={<ReadyToUse />} />
-          <Route path="/wallet" element={<WalletView />} />
+          <Route path="/solanawallet" element={<WalletView />} />
           <Route path="/eth" element={<EtheriumWallet />} />
         </Routes>
       </BrowserRouter>
