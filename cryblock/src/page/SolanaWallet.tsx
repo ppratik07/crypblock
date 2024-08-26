@@ -47,7 +47,7 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
 
     const addWallet = async () => {
         const walletIndex = wallets.length;
-        const seed: Buffer = await mnemonicToSeed(mnemonic); 
+        const seed: Buffer = await mnemonicToSeed(mnemonic);
         const seedHex: string = seed.toString("hex");
         const path: string = `m/44'/501'/${walletIndex}'/0'`;
         const derivedSeed: Buffer = derivePath(path, seedHex).key;
@@ -65,7 +65,7 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         };
 
         setWallets([...wallets, walletDetails]);
-        setSelectedWallet(wallets.length); 
+        setSelectedWallet(wallets.length);
     };
 
     const handleWalletSelection = (index: number) => {
@@ -82,6 +82,8 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
 
                 if (updatedWallets.length === 0) {
                     setSelectedWallet(null);
+                    sessionStorage.removeItem('wallets');
+                    sessionStorage.removeItem('walletsSavedTime');
                 } else if (selectedWallet >= updatedWallets.length) {
                     setSelectedWallet(updatedWallets.length - 1);
                 } else {
