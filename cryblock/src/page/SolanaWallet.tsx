@@ -18,6 +18,7 @@ interface WalletDetails {
 export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
     const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
+    const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
 
     const connection = new Connection('https://api.devnet.solana.com');
 
@@ -30,7 +31,6 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         const secret: Uint8Array = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
         const keypair: Keypair = Keypair.fromSecretKey(secret);
 
-        // Fetching the balance
         const balanceLamports = await connection.getBalance(keypair.publicKey);
         const balanceSOL = balanceLamports / 1e9;
 
@@ -46,6 +46,7 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
 
     const handleWalletSelection = (index: number) => {
         setSelectedWallet(index);
+        setShowPrivateKey(false); 
     };
 
     const removeWallet = () => {
@@ -55,7 +56,6 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
                 const updatedWallets = wallets.filter((_, index) => index !== selectedWallet);
                 setWallets(updatedWallets);
 
-               
                 if (updatedWallets.length === 0) {
                     setSelectedWallet(null);
                 } else if (selectedWallet >= updatedWallets.length) {
@@ -109,7 +109,27 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
                     </div>
                     <div className="mt-2">
                         <label className="block font-medium text-black">Private Key: </label>
-                        <div className="bg-gray-700 p-2 rounded break-all">{wallets[selectedWallet].privateKey}</div>
+                        <div className="flex items-center">
+                            <div
+                                className={`bg-gray-700 p-2 rounded break-all ${!showPrivateKey ? 'blur-sm' : ''}`}
+                            >
+                                {wallets[selectedWallet].privateKey}
+                            </div>
+                            <button
+                                onClick={() => setShowPrivateKey(!showPrivateKey)}
+                                className="ml-2 text-gray-900"
+                            >
+                                {showPrivateKey ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm7 0c0 1.657-2.686 5-7 5s-7-3.343-7-5 2.686-5 7-5 7 3.343 7 5z" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A9.956 9.956 0 0112 19c-4.418 0-8-2.686-8-5a9.956 9.956 0 011.875-5.825m8 8.65A5.996 5.996 0 0018 12c0-2.121-2.032-4-4-4a5.996 5.996 0 00-4.875 2.175m.75 7.65L3 21l9-12.75m1.125 13.575A9.956 9.956 0 0012 5c4.418 0 8 2.686 8 5 0 1.138-.69 2.177-1.825 3.275M5 9a2 2 0 100-4 2 2 0 000 4z" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <button
                         onClick={removeWallet}
