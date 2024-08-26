@@ -55,7 +55,7 @@ export const PasswordComponent = () => {
                         </div>
                     )}
                     <button 
-                        className="bg-gray-500 hover:bg-blue-700 text-white font-bold py-2 px-40 rounded-full"
+                        className="bg-gray-500 hover:bg-blue-700 text-white font-bold py-2 px-40 rounded-full ml-1"
                         onClick={handleSubmit}
                     >
                         Submit
