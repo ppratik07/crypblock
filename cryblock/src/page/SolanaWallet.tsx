@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { mnemonicToSeed } from 'bip39';
 import { derivePath } from 'ed25519-hd-key';
-import { Keypair, Connection } from '@solana/web3.js';
+import { Keypair, Connection, Transaction, SystemProgram, PublicKey,SendTransactionError } from '@solana/web3.js';
 import nacl from 'tweetnacl';
 
 interface SolanaWalletProps {
@@ -19,6 +19,8 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
     const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
     const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
+    const [recipient, setRecipient] = useState<string>('');
+    const [amount, setAmount] = useState<number>(0);
 
     const connection = new Connection('https://api.devnet.solana.com');
 
@@ -93,6 +95,54 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
         }
     };
 
+    const sendFunds = async () => {
+        if (selectedWallet === null || recipient === '' || amount <= 0) {
+            alert("Please select a wallet, enter a recipient address, and specify an amount.");
+            return;
+        }
+    
+        const senderWallet = wallets[selectedWallet];
+        const senderKeypair = Keypair.fromSecretKey(Buffer.from(senderWallet.privateKey, 'hex'));
+    
+        try {
+            const transaction = new Transaction().add(
+                SystemProgram.transfer({
+                    fromPubkey: senderKeypair.publicKey,
+                    toPubkey: new PublicKey(recipient),
+                    lamports: amount * 1e9, 
+                })
+            );
+    
+            const signature = await connection.sendTransaction(transaction, [senderKeypair], { skipPreflight: false });
+            await connection.confirmTransaction(signature, 'confirmed');
+            alert("Transaction successful!");
+            await updateWallets(); 
+        } catch (error) {
+            if (error instanceof SendTransactionError) {
+                console.error("Transaction failed:", error);
+                console.log("Transaction logs:", await error.getLogs(connection));
+            } else {
+                console.error("Unexpected error:", error);
+            }
+            alert("Transaction failed. Check the console for details.");
+        }
+    };
+
+    const updateWallets = async () => {
+        const updatedWallets = await Promise.all(wallets.map(async (wallet) => {
+            const publicKey = new PublicKey(wallet.publicKey);
+            const balanceLamports = await connection.getBalance(publicKey);
+            const balanceSOL = balanceLamports / 1e9;
+
+            return {
+                ...wallet,
+                balance: balanceSOL,
+            };
+        }));
+
+        setWallets(updatedWallets);
+    };
+
     return (
         <div className="p-6 max-w-md mx-auto bg-gray-300 rounded-xl shadow-md space-y-4 text-white">
             <h2 className="text-xl font-bold text-black">Solana Wallets</h2>
@@ -157,6 +207,32 @@ export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
                             </button>
                         </div>
                     </div>
+                    <div className="mt-4">
+                        <label className="block font-medium text-black">Recipient Address:</label>
+                        <input
+                            type="text"
+                            value={recipient}
+                            onChange={(e) => setRecipient(e.target.value)}
+                            className="bg-gray-700 text-white p-2 rounded w-full"
+                        />
+                    </div>
+                    <div className="mt-4">
+                        <label className="block font-medium text-black">Amount (SOL):</label>
+                        <input
+                            type="number"
+                            min="0.000001"
+                            step="0.000001"
+                            value={amount}
+                            onChange={(e) => setAmount(parseFloat(e.target.value))}
+                            className="bg-gray-700 text-white p-2 rounded w-full"
+                        />
+                    </div>
+                    <button
+                        onClick={sendFunds}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+                    >
+                        Send Funds
+                    </button>
                     <button
                         onClick={removeWallet}
                         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
