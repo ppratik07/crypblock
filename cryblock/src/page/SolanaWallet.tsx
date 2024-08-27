@@ -147,6 +147,13 @@ export const SolanaWallet = ({ mnemonic }: any) => {
     
         setWallets(updatedWallets);
     
+       
+        const senderPublicKey = new PublicKey(senderPubKey);
+        const senderBalanceLamports = await connection.getBalance(senderPublicKey);
+        const senderBalanceSOL = senderBalanceLamports / 1e9;
+        console.log(`Sender balance after transaction: ${senderBalanceSOL} SOL`);
+    
+        
         if (!wallets.some(wallet => wallet.publicKey === recipientPubKey)) {
             const recipientPublicKey = new PublicKey(recipientPubKey);
             const recipientBalanceLamports = await connection.getBalance(recipientPublicKey);
@@ -154,6 +161,7 @@ export const SolanaWallet = ({ mnemonic }: any) => {
             console.log(`Recipient balance: ${recipientBalanceSOL} SOL`);
         }
     };
+    
     
 
     return (
