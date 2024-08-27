@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { LoadingScreen } from '../components/LoadingScreen';
 
@@ -8,7 +8,7 @@ export const LandingPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState('Generating wallet...');
   const navigate = useNavigate();
-  const { connect, disconnect, connected, wallet, select } = useWallet();
+  const { connected, wallet } = useWallet();
   const { setVisible } = useWalletModal();
 
   useEffect(() => {
