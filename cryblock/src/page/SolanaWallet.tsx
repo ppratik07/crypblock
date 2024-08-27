@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { mnemonicToSeed } from 'bip39';
 import { derivePath } from 'ed25519-hd-key';
 import { Keypair, Connection, Transaction, SystemProgram, PublicKey,SendTransactionError } from '@solana/web3.js';
 import nacl from 'tweetnacl';
-
-interface SolanaWalletProps {
-    mnemonic: string;
-}
 
 interface WalletDetails {
     publicKey: string;
@@ -15,7 +11,7 @@ interface WalletDetails {
     accountName: string;
 }
 
-export const WalletView: React.FC<SolanaWalletProps> = ({ mnemonic }) => {
+export const WalletView = ({ mnemonic }:any) => {
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
     const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
     const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
