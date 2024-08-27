@@ -17,6 +17,7 @@ export const SolanaWallet = ({ mnemonic }: any) => {
     const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
     const [recipient, setRecipient] = useState<string>('');
     const [amount, setAmount] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const connection = new Connection('https://api.testnet.solana.com');
 
@@ -98,26 +99,25 @@ export const SolanaWallet = ({ mnemonic }: any) => {
             alert("Please select a wallet, enter a recipient address, and specify an amount.");
             return;
         }
-
+        setLoading(true);
         const senderWallet = wallets[selectedWallet];
         const senderKeypair = Keypair.fromSecretKey(Buffer.from(senderWallet.privateKey, 'hex'));
-
+    
         try {
             const transaction = new Transaction().add(
                 SystemProgram.transfer({
                     fromPubkey: senderKeypair.publicKey,
                     toPubkey: new PublicKey(recipient),
-                    lamports: amount * 1e9, 
+                    lamports: amount * 1e9,
                 })
             );
-
+    
             const signature = await connection.sendTransaction(transaction, [senderKeypair], { skipPreflight: false });
             await connection.confirmTransaction(signature, 'confirmed');
-
+    
             alert("Transaction successful!");
-
             await updateWalletBalances(senderWallet.publicKey, recipient);
-
+    
         } catch (error) {
             if (error instanceof SendTransactionError) {
                 console.error("Transaction failed:", error);
@@ -127,22 +127,34 @@ export const SolanaWallet = ({ mnemonic }: any) => {
             }
             alert("Transaction failed.");
         }
+        finally {
+            setLoading(false);
+        }
     };
+    
 
     const updateWalletBalances = async (senderPubKey: string, recipientPubKey: string) => {
         const updatedWallets = await Promise.all(wallets.map(async (wallet) => {
             const publicKey = new PublicKey(wallet.publicKey);
             const balanceLamports = await connection.getBalance(publicKey);
             const balanceSOL = balanceLamports / 1e9;
-
+    
             return {
                 ...wallet,
                 balance: balanceSOL,
             };
         }));
-
+    
         setWallets(updatedWallets);
+    
+        if (!wallets.some(wallet => wallet.publicKey === recipientPubKey)) {
+            const recipientPublicKey = new PublicKey(recipientPubKey);
+            const recipientBalanceLamports = await connection.getBalance(recipientPublicKey);
+            const recipientBalanceSOL = recipientBalanceLamports / 1e9;
+            console.log(`Recipient balance: ${recipientBalanceSOL} SOL`);
+        }
     };
+    
 
     return (
         <div className="p-6 max-w-md mx-auto bg-gray-300 rounded-xl shadow-md space-y-4 text-white">
@@ -202,13 +214,12 @@ export const SolanaWallet = ({ mnemonic }: any) => {
                                     </svg>
                                 ) : (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A9.956 9.956 0 0112 19c-4.418 0-8-2.686-8-5a9.956 9.956 0 011.875-5.825m8 8.65A5.996 5.996 0 0018 12c0-2.121-2.032-4-4-4a5.996 5.996 0 00-4.875 2.175" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A9.956 9.956 0 0112 19c-4.418 0-8-2.686-8-5a9.956 9.956 0 011.875-5.825m8 8.65A5.996 5.996 0 0018 12c0-2.121-2.032-4-4-4a5.996 5.996 0 00-4.875 2.175m.75 7.65L3 21l9-12.75m1.125 13.575A9.956 9.956 0 0012 5c4.418 0 8 2.686 8 5 0 1.138-.69 2.177-1.825 3.275M5 9a2 2 0 100-4 2 2 0 000 4z" />
                                     </svg>
                                 )}
                             </button>
                         </div>
                     </div>
-
                     <div className="mt-4">
                         <label className="block font-medium text-black">Recipient Address:</label>
                         <input
@@ -231,7 +242,17 @@ export const SolanaWallet = ({ mnemonic }: any) => {
                         onClick={sendFunds}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
                     >
-                        Send Funds
+                        {loading ? (
+                            <div className="flex items-center">
+                                <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0112.142-6.142L12 5V1a1 1 0 00-2 0v4a1 1 0 00.293.707L14.707 7.293A8 8 0 014 12z"></path>
+                                </svg>
+                                Sending...
+                            </div>
+                        ) : (
+                            'Send Funds'
+                        )}
                     </button>
                 </div>
             )}
