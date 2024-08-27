@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { mnemonicToSeed } from 'bip39';
 import { derivePath } from 'ed25519-hd-key';
-import { Keypair, Connection, Transaction, SystemProgram, PublicKey,SendTransactionError } from '@solana/web3.js';
+import { Keypair, Connection, Transaction, SystemProgram, PublicKey, SendTransactionError } from '@solana/web3.js';
 import nacl from 'tweetnacl';
 
 interface WalletDetails {
@@ -11,7 +11,7 @@ interface WalletDetails {
     accountName: string;
 }
 
-export const SolanaWallet = ({ mnemonic }:any) => {
+export const SolanaWallet = ({ mnemonic }: any) => {
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
     const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
     const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
@@ -27,7 +27,7 @@ export const SolanaWallet = ({ mnemonic }:any) => {
         if (savedWallets && savedTime) {
             const currentTime = new Date().getTime();
             const timeElapsed = currentTime - parseInt(savedTime, 10);
-            if (timeElapsed <= 900000) {
+            if (timeElapsed <= 900000) { 
                 setWallets(JSON.parse(savedWallets));
             } else {
                 sessionStorage.removeItem('wallets');
@@ -69,6 +69,8 @@ export const SolanaWallet = ({ mnemonic }:any) => {
     const handleWalletSelection = (index: number) => {
         setSelectedWallet(index);
         setShowPrivateKey(false);
+        setRecipient('');
+        setAmount(0); 
     };
 
     const removeWallet = () => {
@@ -96,10 +98,10 @@ export const SolanaWallet = ({ mnemonic }:any) => {
             alert("Please select a wallet, enter a recipient address, and specify an amount.");
             return;
         }
-    
+
         const senderWallet = wallets[selectedWallet];
         const senderKeypair = Keypair.fromSecretKey(Buffer.from(senderWallet.privateKey, 'hex'));
-    
+
         try {
             const transaction = new Transaction().add(
                 SystemProgram.transfer({
@@ -108,11 +110,14 @@ export const SolanaWallet = ({ mnemonic }:any) => {
                     lamports: amount * 1e9, 
                 })
             );
-    
+
             const signature = await connection.sendTransaction(transaction, [senderKeypair], { skipPreflight: false });
             await connection.confirmTransaction(signature, 'confirmed');
+
             alert("Transaction successful!");
-            await updateWallets(); 
+
+            await updateWalletBalances(senderWallet.publicKey, recipient);
+
         } catch (error) {
             if (error instanceof SendTransactionError) {
                 console.error("Transaction failed:", error);
@@ -120,11 +125,11 @@ export const SolanaWallet = ({ mnemonic }:any) => {
             } else {
                 console.error("Unexpected error:", error);
             }
-            alert("Transaction failed. Check the console for details.");
+            alert("Transaction failed.");
         }
     };
 
-    const updateWallets = async () => {
+    const updateWalletBalances = async (senderPubKey: string, recipientPubKey: string) => {
         const updatedWallets = await Promise.all(wallets.map(async (wallet) => {
             const publicKey = new PublicKey(wallet.publicKey);
             const balanceLamports = await connection.getBalance(publicKey);
@@ -197,12 +202,13 @@ export const SolanaWallet = ({ mnemonic }:any) => {
                                     </svg>
                                 ) : (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A9.956 9.956 0 0112 19c-4.418 0-8-2.686-8-5a9.956 9.956 0 011.875-5.825m8 8.65A5.996 5.996 0 0018 12c0-2.121-2.032-4-4-4a5.996 5.996 0 00-4.875 2.175m.75 7.65L3 21l9-12.75m1.125 13.575A9.956 9.956 0 0012 5c4.418 0 8 2.686 8 5 0 1.138-.69 2.177-1.825 3.275M5 9a2 2 0 100-4 2 2 0 000 4z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A9.956 9.956 0 0112 19c-4.418 0-8-2.686-8-5a9.956 9.956 0 011.875-5.825m8 8.65A5.996 5.996 0 0018 12c0-2.121-2.032-4-4-4a5.996 5.996 0 00-4.875 2.175" />
                                     </svg>
                                 )}
                             </button>
                         </div>
                     </div>
+
                     <div className="mt-4">
                         <label className="block font-medium text-black">Recipient Address:</label>
                         <input
@@ -212,12 +218,10 @@ export const SolanaWallet = ({ mnemonic }:any) => {
                             className="bg-gray-700 text-white p-2 rounded w-full"
                         />
                     </div>
-                    <div className="mt-4">
-                        <label className="block font-medium text-black">Amount (SOL):</label>
+                    <div className="mt-2">
+                        <label className="block font-medium text-black">Amount (in SOL):</label>
                         <input
                             type="number"
-                            min="0.000001"
-                            step="0.000001"
                             value={amount}
                             onChange={(e) => setAmount(parseFloat(e.target.value))}
                             className="bg-gray-700 text-white p-2 rounded w-full"
@@ -229,15 +233,17 @@ export const SolanaWallet = ({ mnemonic }:any) => {
                     >
                         Send Funds
                     </button>
-                    <button
-                        onClick={removeWallet}
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
-                    >
-                        Remove Wallet
-                    </button>
                 </div>
+            )}
+
+            {wallets.length > 0 && (
+                <button
+                    onClick={removeWallet}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
+                >
+                    Remove Wallet
+                </button>
             )}
         </div>
     );
 };
-
