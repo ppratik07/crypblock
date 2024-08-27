@@ -21,9 +21,9 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/password" element={<PasswordComponent />} />
-            <Route path="/recoveryphase" element={<RecoveryPhase />} />
+            <Route path="/recoveryphase" element={<ProtectedRoute element={<RecoveryPhase/>} path="/solanawallet" />} />
             <Route path="/selectwallets" element={<ReadyToUse />} />
-            <Route path="/solanawallet" element={<ProtectedRoute element={<WalletView/>} path="/solanawallet" />} />
+            <Route path="/solanawallet" element={<WalletView/>} />
             <Route path="/etheriumwallet" element={<EtheriumWallet />} />
             <Route path="/404" element={<Custom404Page />} />
           </Routes>
