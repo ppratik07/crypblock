@@ -66,4 +66,3 @@ export const EtheriumWallet = ({ mnemonic }: any) => {
     );
 };
 
-export default EtheriumWallet;

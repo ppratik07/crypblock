@@ -11,7 +11,7 @@ interface WalletDetails {
     accountName: string;
 }
 
-export const WalletView = ({ mnemonic }:any) => {
+export const SolanaWallet = ({ mnemonic }:any) => {
     const [wallets, setWallets] = useState<WalletDetails[]>([]);
     const [selectedWallet, setSelectedWallet] = useState<number | null>(null);
     const [showPrivateKey, setShowPrivateKey] = useState<boolean>(false);
@@ -241,4 +241,3 @@ export const WalletView = ({ mnemonic }:any) => {
     );
 };
 
-export default WalletView;
