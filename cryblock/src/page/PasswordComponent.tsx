@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BackIcon } from "../components/BackIcon";
 import { useNavigate } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ export const PasswordComponent = () => {
         } else {
             setErrorMessage('');
             console.log("Passwords match");
+            localStorage.setItem('passwordSet','true');
             navigate("/recoveryphase");
         }
     };
