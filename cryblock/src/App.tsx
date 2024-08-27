@@ -7,6 +7,10 @@ import { ReadyToUse } from './page/ReadyToUse';
 import WalletView from './page/SolanaWallet';
 import EtheriumWallet from './page/EtheriumWallet';
 import WalletConnectionProvider from './components/WalletConnectionProvider';
+import ProtectedRoute from './Routes/ProtectedRoute';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/700.css';
+import Custom404Page from './404/Custom404';
 
 function App() {
 
@@ -18,9 +22,10 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/password" element={<PasswordComponent />} />
             <Route path="/recoveryphase" element={<RecoveryPhase />} />
-            <Route path="/ready" element={<ReadyToUse />} />
-            <Route path="/solanawallet" element={<WalletView />} />
-            <Route path="/eth" element={<EtheriumWallet />} />
+            <Route path="/selectwallets" element={<ReadyToUse />} />
+            <Route path="/solanawallet" element={<ProtectedRoute element={<WalletView/>} path="/solanawallet" />} />
+            <Route path="/etheriumwallet" element={<EtheriumWallet />} />
+            <Route path="/404" element={<Custom404Page />} />
           </Routes>
         </BrowserRouter>
       </WalletConnectionProvider>
