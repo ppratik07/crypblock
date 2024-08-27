@@ -18,7 +18,7 @@ export const WalletView = ({ mnemonic }:any) => {
     const [recipient, setRecipient] = useState<string>('');
     const [amount, setAmount] = useState<number>(0);
 
-    const connection = new Connection('https://api.devnet.solana.com');
+    const connection = new Connection('https://api.testnet.solana.com');
 
     useEffect(() => {
         const savedWallets = sessionStorage.getItem('wallets');
