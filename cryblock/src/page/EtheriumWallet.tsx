@@ -1,10 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { mnemonicToSeed } from "bip39";
 import { Wallet, HDNodeWallet, ethers } from "ethers";
-
-interface EthereumWalletProps {
-    mnemonic: string;
-}
 
 interface EthWalletDetails {
     address: string;
@@ -12,7 +8,7 @@ interface EthWalletDetails {
     balance: string;
 }
 
-export const EtheriumWallet: React.FC<EthereumWalletProps> = ({ mnemonic }) => {
+export const EtheriumWallet = ({ mnemonic }: any) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [wallets, setWallets] = useState<EthWalletDetails[]>([]);
 
@@ -24,7 +20,7 @@ export const EtheriumWallet: React.FC<EthereumWalletProps> = ({ mnemonic }) => {
         const privateKey = child.privateKey;
         const wallet = new Wallet(privateKey);
 
-        const provider = new ethers.JsonRpcProvider(""); 
+        const provider = new ethers.JsonRpcProvider("");
         const balance = await provider.getBalance(wallet.address);
         const balanceETH = ethers.formatEther(balance);
 
